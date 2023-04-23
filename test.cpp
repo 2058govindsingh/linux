@@ -1,88 +1,66 @@
-//Fri Apr 21 07:31:26 AM EDT 2023
+//Sat Apr 22 06:21:20 PM EDT 2023
 #include <bits/stdc++.h>
 using namespace std;
 #define fast_io ios_base::sync_with_stdio(0);cin.tie(0);cout.tie(0);
 #define int long long int
 int INF = 1e18 + 1e9;
+int dp[10001][2][2][101];
 int mod = 1e9 + 7;
-int dp[18][2][2];
-vector<int> get(int x)
+int countWays(int n, int lo, int hi, int val, string &a, string &b, int d)
 {
-	vector<int> res;
-	for(int i = 0; i< 18;i++)
-	{
-		res.push_back(x % 10);
-		x /=10;
-	}
-	reverse(res.begin(), res.end());
-	return res;
-}
-int powMod(int a, int b, int n)
-{
-    int x = 1, y = a;
-    while (b > 0)
-    {
-        if (b % 2 == 1)
-        {
-            x = (x * y) % n;
-        }
-        y = (y * y) % n;
-        b /= 2;
-    }
-    return x % n;
-}
-
-int countNums(int i, int n, int lo, int hi, vector<int> & va, vector<int> &vb)
-{
-	if(i == n)
-		return 1;
-	if(dp[i][lo][hi] != -1)
-		return dp[i][lo][hi];
+	if(n == a.size())
+		return val == 0;
+	if(dp[n][lo][hi][val] != -1)
+		return dp[n][lo][hi][val];
+	int count = 0;
 	if(lo && hi)
 	{
-		if(va[i] == vb[i])
+		if(a[n] == b[n])
+			return dp[n][lo][hi][val] = countWays(n + 1, lo, hi, (val + a[n] - '0') % d, a, b, d);
+		for(char i = a[n]; i <= b[n]; i++)
 		{
-			return dp[i][lo][hi] = countNums(i + 1, n, lo, hi, va, vb);
-		}
-		int count = countNums(i + 1, n, 1, 0, va, vb);
-		count += countNums(i + 1, n, 0, 1, va, vb);
-		for(int j = va[i] + 1; j <= vb[i] - 1;j++)
-		{
-			count += countNums(i + 1, n, 0, 0, va, vb);
-		}
-		return dp[i][lo][hi] = count % mod;
+
+			if(i == a[n])
+				count += countWays(n + 1, lo, 0, (val + i - '0') % d, a, b, d);
+			else if(i == b[n])
+				count += countWays(n + 1, 0, hi, (val + i - '0') % d, a, b, d);
+			else
+				count += countWays(n + 1, 0, 0, (val + i - '0') % d, a, b, d); 
+		}	
+		return dp[n][lo][hi][val] = count % mod;
 	}
 	if(lo)
 	{
-		int count = countNums(i + 1, n, 1, 0, va, vb);
-		for(int j = va[i] + 1; j <= 9; j++)
+		count += countWays(n + 1, lo, 0, (val + a[n] - '0') % d, a, b, d);
+		for(char i = a[n] + 1; i <= '9'; i++)
 		{
-			count += countNums(i + 1, n, 0, 0, va, vb);
+			count += countWays(n + 1, 0, 0, (val + i - '0') % d, a, b, d); 
 		}
-		return dp[i][lo][hi] = count % mod;
+		return dp[n][lo][hi][val] = count % mod;
 	}
 	if(hi)
 	{
-		int count = countNums(i + 1, n, 0, 1, va, vb);
-		for(int j = 0; j <= vb[i] - 1; j++)
-		{
-			count += countNums(i + 1, n, 0, 0, va, vb);
-		}
-		return dp[i][lo][hi] = count % mod;
+		count += countWays(n + 1, 0, hi, (val + b[n] - '0') % d, a, b, d);
+		for(char i = '0'; i <= b[n] - 1; i++)
+			count += countWays(n + 1, 0, 0, (val + i - '0') % d, a, b, d);
+		return dp[n][lo][hi][val] = count % mod;
 	}
-	int count = powMod(10, n - i, mod);
-	return dp[i][lo][hi] = count;
+	for(char i = '0'; i <= '9'; i++)
+		count += countWays(n + 1, 0, 0, (val + i - '0') % d, a, b, d);
 
+	return dp[n][lo][hi][val] = count % mod;
 }	
 signed main()
 {
 	fast_io;
-	int a, b;
-	cin >> a >> b;
+	string b;
+	int d;
 	memset(dp, -1, sizeof(dp));
-	int res = 0;
-	vector<int> va = get(a);
-	vector<int> vb = get(b);
-	cout << countNums(0, 18, 1, 1, va, vb);
+	cin >> b >> d;
+	int n = b.size();
+	string a(n, '0');
+	a[n-1] = '1';
+	cout << countWays(0, 1, 1, 0, a, b, d);
+
 	return 0;
 }
